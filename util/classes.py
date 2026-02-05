@@ -95,4 +95,9 @@ CLASSES = {'pascal': ['background', 'aeroplane', 'bicycle', 'bird', 'boat', 'bot
                     'ball', 'food', 'step', 'tank', 'trade name', 'microwave', 'pot', 'animal', 'bicycle', 'lake', 'dishwasher',
                     'screen', 'blanket', 'sculpture', 'hood', 'sconce', 'vase', 'traffic light', 'tray', 'ashcan', 'fan', 'pier',
                     'crt screen', 'plate', 'monitor', 'bulletin board', 'shower', 'radiator', 'glass', 'clock', 'flag'],
+        
+                'mota': ["large_Vehicle", "swimming_pool", "helicopter", "bridge", "plane",
+                        "ship", "soccer_ball_field", "basketball_court", "ground_Track_Field", "small_Vehicle",
+                        "baseball_diamond", "tennis_court", "roundabout", "storage_tank", "harbor", "background",
+                        'Cropland', 'Tree', 'Grass', 'Water', 'Buildings', 'Road'],
            }
