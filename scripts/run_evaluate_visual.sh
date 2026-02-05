@@ -5,9 +5,9 @@
 
 # 默认参数
 CONFIG=${CONFIG:-"configs/IRSAMap.yaml"}
-CKPT_PATH=${CKPT_PATH:-"pretrained/best_dinov3_vit_b_mask_0.5_multi_40k.pth"}
+CKPT_PATH=${CKPT_PATH:-"pretrained/dinov3_base_RSM_best.pth"}
 BACKBONE=${BACKBONE:-"dinov3_vit_b"}
-INIT_BACKBONE=${INIT_BACKBONE:-"none"}
+INIT_BACKBONE=${INIT_BACKBONE:-"dinov3"}
 IMAGE_SIZE=${IMAGE_SIZE:-512}
 PRED_DIR=${PRED_DIR:-"exp/visualizations/predictions"}
 RGB_DIR=${RGB_DIR:-"exp/visualizations/rgb"}
