@@ -268,7 +268,7 @@ def main():
     parser.add_argument("--backbone", type=str, default="vit_h", required=False)
     # parser.add_argument('--backbone', type=str, default='swin_l', required=False)
     parser.add_argument("--init_backbone", type=str, default="none", required=False)
-    parser.add_argument("--image_size", type=int, default=512)
+    parser.add_argument("--image-size", type=int, default=512)
     parser.add_argument(
         "--pred-dir",
         type=str,
