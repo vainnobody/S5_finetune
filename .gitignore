@@ -5,10 +5,14 @@ notebook
 pretrained/
 
 # 运行脚本
-scripts/
+scripts/*
+!scripts/run_evaluate_visual.sh
+
+
 
 # 日志
 exp/
 
 # 其他文件
 **/__pycache__
+**/*.md
