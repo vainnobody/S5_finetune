@@ -285,6 +285,8 @@ def main():
     args = parser.parse_args()
 
     cfg = yaml.load(open(args.config, "r"), Loader=yaml.Loader)
+    cfg["pred_dir"] = args.pred_dir
+    cfg["rgb_dir"] = args.rgb_dir
 
     model = UperNet(args, cfg)
 
