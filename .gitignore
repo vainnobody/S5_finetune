@@ -1,0 +1,14 @@
+# notebook
+notebook
+
+# 模型
+pretrained/
+
+# 运行脚本
+scripts/
+
+# 日志
+exp/
+
+# 其他文件
+**/__pycache__
