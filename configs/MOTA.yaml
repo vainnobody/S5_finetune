@@ -1,5 +1,5 @@
 # arguments for dataset
-dataset: IRSAMap
+dataset: MOTA
 nclass: 7
 crop_size: 512
 # crop_size: 518

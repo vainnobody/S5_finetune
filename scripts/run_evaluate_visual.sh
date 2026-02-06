@@ -4,7 +4,7 @@
 # 用于对模型进行评估并生成可视化结果（类别索引图和RGB可视化图）
 
 # 默认参数
-CONFIG=${CONFIG:-"configs/IRSAMap.yaml"}
+CONFIG=${CONFIG:-"configs/MOTA.yaml"}
 CKPT_PATH=${CKPT_PATH:-"pretrained/dinov3_base_RSM_best.pth"}
 BACKBONE=${BACKBONE:-"dinov3_vit_b"}
 INIT_BACKBONE=${INIT_BACKBONE:-"dinov3"}
