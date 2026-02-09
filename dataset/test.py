@@ -17,13 +17,23 @@ IMAGENET_DEFAULT_STD = (0.229, 0.224, 0.225)
 
 
 class SemiDataset(Dataset):
-    def __init__(self, name, root, mode, transform=None, size=None, ignore_value=None, id_path=None, nsample=None):
+    def __init__(
+        self,
+        name,
+        root,
+        mode,
+        transform=None,
+        size=None,
+        ignore_value=None,
+        id_path=None,
+        nsample=None,
+    ):
         self.name = name
         self.root = root
         self.mode = mode
         self.size = size
         self.ignore_value = ignore_value
-        self.reduce_zero_label = True if name == 'ade20k' else False
+        self.reduce_zero_label = True if name == "ade20k" else False
         self.transform = transform
 
         # if self.mode == 'val':
@@ -40,27 +50,24 @@ class SemiDataset(Dataset):
         #         T.Normalize(IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD),
         #     ])
 
-
-
-        if mode == 'train_l' or mode == 'train_u':
-            with open(id_path, 'r') as f:
+        if mode == "train_l" or mode == "train_u":
+            with open(id_path, "r") as f:
                 self.ids = f.read().splitlines()
-            if mode == 'train_l' and nsample is not None:
+            if mode == "train_l" and nsample is not None:
                 self.ids *= math.ceil(nsample / len(self.ids))
                 self.ids = self.ids[:nsample]
         else:
-            with open('splits/%s/val_ss_val.txt' % name, 'r') as f:
+            with open("splits/%s/val.txt" % name, "r") as f:
                 self.ids = f.read().splitlines()
             # with open('splits/%s/test.txt' % name, 'r') as f:
-                # self.ids = f.read().splitlines()
-
+            # self.ids = f.read().splitlines()
 
     def _trainid_to_class(self, label):
 
         return label
 
     def tes_class_to_trainid(self, label):
-   
+
         return label
 
     def _class_to_trainid(self, label):
@@ -77,22 +84,20 @@ class SemiDataset(Dataset):
 
     def __getitem__(self, item):
         id = self.ids[item]
-        img = Image.open(os.path.join(self.root, id.split(' ')[0])).convert('RGB')
-        mask = Image.open(os.path.join(self.root, id.split(' ')[1]))
+        img = Image.open(os.path.join(self.root, id.split(" ")[0])).convert("RGB")
+        mask = Image.open(os.path.join(self.root, id.split(" ")[1]))
 
-        if self.name == 'loveda': 
+        if self.name == "loveda":
             mask = self.process_mask(mask)
-        
 
-        if self.mode == 'val':
+        if self.mode == "val":
             np_img = np.array(img)
             img, mask = normalize(img, mask)
             return np_img, img, mask, id
             # return img, mask, id
 
-        
         img, mask = resize(img, mask, (0.5, 2.0))
-        ignore_value = 254 if self.mode == 'train_u' else self.ignore_value
+        ignore_value = 254 if self.mode == "train_u" else self.ignore_value
         img, mask = crop(img, mask, self.size, ignore_value)
         img, mask = hflip(img, mask, p=0.5)
         # img, mask = bflip(img, mask, p=0.5)
@@ -101,7 +106,7 @@ class SemiDataset(Dataset):
         # img, mask = Rotate_180(img, mask, p=0.5)
         # img, mask = Rotate_270(img, mask, p=0.5)
 
-        if self.mode == 'train_l':
+        if self.mode == "train_l":
             return normalize(img, mask)
 
         img_w, img_s1, img_s2 = deepcopy(img), deepcopy(img), deepcopy(img)
