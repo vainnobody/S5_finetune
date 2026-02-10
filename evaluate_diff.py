@@ -48,7 +48,7 @@ def main():
     parser.add_argument(
         "--config",
         type=str,
-        default="configs/loveda.yaml",
+        default="configs/MOTA.yaml",
     )
     parser.add_argument(
         "--output-dir",

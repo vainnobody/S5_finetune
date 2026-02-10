@@ -68,6 +68,8 @@ def batch_convert_masks(input_folder, output_folder):
             # print(f"Processed {filename}")
 
 # 使用示例，将'input_masks'文件夹中的所有文件转换并保存到'output_rgbs'文件夹中
-input_folder = "/data1/users/zhengzhiyu/mtp_workplace/dataset/MOTA/split_ms_dota1_0/train/merged_IRSAMap_masks"
-output_folder = "/data1/users/zhengzhiyu/mtp_workplace/dataset/MOTA/split_ms_dota1_0/train/merged_IRSAMap_rgb"
+# input_folder = "/data/users/lanjie/Project/S5_finetune/exp/diff/old_mask"
+# output_folder = "/data/users/lanjie/Project/S5_finetune/exp/diff/old_mask_rgb"
+input_folder = "/data/users/lanjie/Project/S5_finetune/exp/diff/new_mask"
+output_folder = "/data/users/lanjie/Project/S5_finetune/exp/diff/new_mask_rgb"
 batch_convert_masks(input_folder, output_folder)

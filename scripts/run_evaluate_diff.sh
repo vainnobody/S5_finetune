@@ -4,7 +4,7 @@
 # 用于对比两种模型生成的标签，找出差异最大的样本
 
 # 默认参数
-CONFIG=${CONFIG:-"configs/loveda.yaml"}
+CONFIG=${CONFIG:-"configs/MOTA.yaml"}
 OUTPUT_DIR=${OUTPUT_DIR:-"exp/diff/"}
 TOP_PERCENT=${TOP_PERCENT:-1.0}
 OUTPUT_ALL=${OUTPUT_ALL:-false}

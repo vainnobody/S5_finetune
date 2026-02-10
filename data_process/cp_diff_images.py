@@ -10,7 +10,7 @@ import argparse
 import os
 import shutil
 from tqdm import tqdm
-
+import yaml
 
 def parse_diff_line(line):
     """
@@ -122,16 +122,9 @@ def main():
         description="复制差异mask文件 - 将差异较大的样本的mask复制到指定目录"
     )
     parser.add_argument(
-        "--dataset",
+        "--config",
         type=str,
-        required=True,
-        help="数据集名称 (如 loveda, potsdam, isaid_ori 等)",
-    )
-    parser.add_argument(
-        "--data-root",
-        type=str,
-        required=True,
-        help="数据集根目录路径",
+        default="configs/MOTA.yaml",
     )
     parser.add_argument(
         "--diff-file",
@@ -147,7 +140,9 @@ def main():
     )
 
     args = parser.parse_args()
-
+    cfg = yaml.load(open(args.config, "r"), Loader=yaml.Loader)
+    args.dataset = cfg['dataset']
+    args.data_root = cfg['data_root']
     # 确定diff文件路径
     if args.diff_file is None:
         args.diff_file = os.path.join(
