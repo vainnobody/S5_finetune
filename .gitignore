@@ -7,7 +7,7 @@ pretrained/
 # 运行脚本
 scripts/*
 !scripts/run_evaluate_visual.sh
-
+!scripts/run_evaluate_diff.sh
 
 
 # 日志
