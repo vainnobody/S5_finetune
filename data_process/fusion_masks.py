@@ -3,9 +3,9 @@ from PIL import Image
 import numpy as np
 from tqdm import tqdm
 
-open_dir = "/data/users/lanjie/dataset/MOTA/split_ms_dota1_0/train/labels_IRSAMap"  # 模型预测
+open_dir = "/data/users/lanjie/Project/S5_finetune/exp/visualizations/predictions"  # 模型预测
 mask_dir = "/data/users/lanjie/dataset/MOTA/split_ms_dota1_0/train/new_labels_255"  #原始标签
-merged_dir = "/data/users/lanjie/dataset/MOTA/split_ms_dota1_0/train/merged_IRSAMap_masks/" #融合标签
+merged_dir = "/data/users/lanjie/dataset/MOTA/split_ms_dota1_0/train/merged_IRSAMap_masks_2/" #融合标签
 
 os.makedirs(merged_dir, exist_ok=True)
 
