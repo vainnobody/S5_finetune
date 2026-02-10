@@ -305,23 +305,21 @@ def main():
     eval_mode = "sliding_window"
     # eval_mode = 'original'
     # eval_mode = 'resize'
-    mIoU, mAcc, mF1, allAcc, iou_class, F1_class = evaluate(
-        model, valloader, eval_mode, cfg
-    )
+    evaluate(model, valloader, eval_mode, cfg)
 
-    for cls_idx, F1 in enumerate(F1_class):
-        print(
-            "***** Evaluation ***** >>>> Class [{:} {:}] "
-            "F1: {:.2f}".format(cls_idx, CLASSES[cfg["dataset"]][cls_idx], F1)
-        )
-    print("***** Evaluation {} ***** >>>> MeanF1: {:.2f}\n".format(eval_mode, mF1))
+    # for cls_idx, F1 in enumerate(F1_class):
+    #     print(
+    #         "***** Evaluation ***** >>>> Class [{:} {:}] "
+    #         "F1: {:.2f}".format(cls_idx, CLASSES[cfg["dataset"]][cls_idx], F1)
+    #     )
+    # print("***** Evaluation {} ***** >>>> MeanF1: {:.2f}\n".format(eval_mode, mF1))
 
-    for cls_idx, IoU in enumerate(iou_class):
-        print(
-            "***** Evaluation ***** >>>> Class [{:} {:}] "
-            "IoU: {:.2f}".format(cls_idx, CLASSES[cfg["dataset"]][cls_idx], IoU)
-        )
-    print("***** Evaluation {} ***** >>>> MeanIoU: {:.2f}\n".format(eval_mode, mIoU))
+    # for cls_idx, IoU in enumerate(iou_class):
+    #     print(
+    #         "***** Evaluation ***** >>>> Class [{:} {:}] "
+    #         "IoU: {:.2f}".format(cls_idx, CLASSES[cfg["dataset"]][cls_idx], IoU)
+    #     )
+    # print("***** Evaluation {} ***** >>>> MeanIoU: {:.2f}\n".format(eval_mode, mIoU))
 
 
 if __name__ == "__main__":
