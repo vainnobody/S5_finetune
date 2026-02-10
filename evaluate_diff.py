@@ -63,6 +63,13 @@ def main():
         help="输出差异最大的前百分之N的样本 (默认: 1.0)",
     )
     parser.add_argument(
+        "--mode",
+        type=str,
+        default="high",
+        choices=["high", "low"],
+        help="输出模式: 'high' 为差异最大的样本, 'low' 为差异最小的样本 (默认: high)",
+    )
+    parser.add_argument(
         "--output-all",
         action="store_true",
         help="输出所有样本的差异（按差异排序）",
@@ -95,30 +102,46 @@ def main():
     print("Max diff: {:.4f} ({:.2f}%)".format(max_diff, max_diff * 100))
     print("Min diff: {:.4f} ({:.2f}%)\n".format(min_diff, min_diff * 100))
 
-    # 确定输出数量
+    # 确定输出数量和范围
     if args.output_all:
         output_count = len(results)
     else:
         output_count = max(1, int(len(results) * args.top_percent / 100))
 
-    print("Output {} samples with highest diff...\n".format(output_count))
+    # 根据模式选择样本范围
+    if args.mode == "high":
+        output_results = results[:output_count]
+        mode_desc = "highest"
+        suffix = "high"
+    else:  # low mode
+        output_results = results[-output_count:]
+        mode_desc = "lowest"
+        suffix = "low"
+
+    print("Output {} samples with {} diff...\n".format(output_count, mode_desc))
 
     # 输出文件路径
     output_path = os.path.join(
-        args.output_dir, "{}_high_diff.txt".format(cfg["dataset"])
+        args.output_dir, "{}_{}_diff.txt".format(cfg["dataset"], suffix)
     )
 
     # 写入结果 (格式: image_path old_mask_path new_mask_path diff_ratio)
     with open(output_path, "w") as f:
-        for r in results[:output_count]:
+        for r in output_results:
             line = "{} {:.6f}\n".format(r["id"], r["diff_ratio"])
             f.write(line)
 
     print("Results saved to: {}\n".format(output_path))
 
-    # 显示前10个差异最大的样本
-    print("***** Top 10 High Diff Samples *****")
-    for i, r in enumerate(results[:10]):
+    # 显示前10个对应差异的样本
+    if args.mode == "high":
+        print("***** Top 10 High Diff Samples *****")
+        display_results = results[:10]
+    else:
+        print("***** Top 10 Low Diff Samples *****")
+        display_results = results[-10:][::-1]  # 反转，让最小的显示在最前面
+
+    for i, r in enumerate(display_results):
         print("{:2d}. {}: {:.2f}%".format(i + 1, r["img_path"], r["diff_ratio"] * 100))
 
 
