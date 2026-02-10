@@ -95,10 +95,16 @@ def main():
     print("Max diff: {:.4f} ({:.2f}%)".format(max_diff, max_diff * 100))
     print("Min diff: {:.4f} ({:.2f}%)\n".format(min_diff, min_diff * 100))
 
-    # 根据阈值筛选低差异样本
-    output_results = [r for r in results if r["diff_ratio"] <= args.threshold]
-    output_count = len(output_results)
-    print("Found {} samples with low diff (threshold: {:.4f})...\n".format(output_count, args.threshold))
+    # 根据参数确定输出范围
+    if args.output_all:
+        output_results = results
+        output_count = len(results)
+        print("Output all {} samples...\n".format(output_count))
+    else:
+        # 根据阈值筛选低差异样本
+        output_results = [r for r in results if r["diff_ratio"] <= args.threshold]
+        output_count = len(output_results)
+        print("Found {} samples with low diff (threshold: {:.4f})...\n".format(output_count, args.threshold))
 
     # 输出文件路径
     output_path = os.path.join(
