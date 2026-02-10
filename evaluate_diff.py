@@ -65,7 +65,7 @@ def main():
     parser.add_argument(
         "--mode",
         type=str,
-        default="high",
+        default="low",
         choices=["high", "low"],
         help="输出模式: 'high' 为差异最大的样本, 'low' 为差异最小的样本 (默认: high)",
     )

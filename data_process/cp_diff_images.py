@@ -137,7 +137,7 @@ def main():
         "--diff-file",
         type=str,
         default=None,
-        help="diff.txt文件路径 (默认: exp/diff/{dataset}_high_diff.txt)",
+        help="diff.txt文件路径 (默认: exp/diff/{dataset}_low_diff.txt)",
     )
     parser.add_argument(
         "--output-dir",
@@ -153,7 +153,7 @@ def main():
     # 确定diff文件路径
     if args.diff_file is None:
         args.diff_file = os.path.join(
-            args.output_dir, f"{args.dataset}_high_diff.txt"
+            args.output_dir, f"{args.dataset}_low_diff.txt"
         )
 
     print("=" * 50)
