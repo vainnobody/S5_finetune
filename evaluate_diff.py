@@ -63,13 +63,6 @@ def main():
         help="差异率阈值，筛选差值小于等于此阈值的样本 (默认: 0.01)",
     )
     parser.add_argument(
-        "--mode",
-        type=str,
-        default="low",
-        choices=["high", "low"],
-        help="输出模式: 'high' 为差异最大的样本, 'low' 为差异最小的样本 (默认: low)",
-    )
-    parser.add_argument(
         "--output-all",
         action="store_true",
         help="输出所有样本的差异（按差异排序）",
@@ -102,22 +95,14 @@ def main():
     print("Max diff: {:.4f} ({:.2f}%)".format(max_diff, max_diff * 100))
     print("Min diff: {:.4f} ({:.2f}%)\n".format(min_diff, min_diff * 100))
 
-    # 根据阈值筛选样本
-    if args.mode == "high":
-        output_results = [r for r in results if r["diff_ratio"] >= args.threshold]
-        mode_desc = "highest"
-        suffix = "high"
-    else:  # low mode
-        output_results = [r for r in results if r["diff_ratio"] <= args.threshold]
-        mode_desc = "lowest"
-        suffix = "low"
-
+    # 根据阈值筛选低差异样本
+    output_results = [r for r in results if r["diff_ratio"] <= args.threshold]
     output_count = len(output_results)
-    print("Found {} samples with {} diff (threshold: {:.4f})...\n".format(output_count, mode_desc, args.threshold))
+    print("Found {} samples with low diff (threshold: {:.4f})...\n".format(output_count, args.threshold))
 
     # 输出文件路径
     output_path = os.path.join(
-        args.output_dir, "{}_{}_diff.txt".format(cfg["dataset"], suffix)
+        args.output_dir, "{}_diff.txt".format(cfg["dataset"])
     )
 
     # 写入结果 (格式: image_path old_mask_path new_mask_path diff_ratio)
@@ -128,13 +113,9 @@ def main():
 
     print("Results saved to: {}\n".format(output_path))
 
-    # 显示前10个对应差异的样本
-    if args.mode == "high":
-        print("***** Top 10 High Diff Samples *****")
-        display_results = results[:10]
-    else:
-        print("***** Top 10 Low Diff Samples *****")
-        display_results = results[-10:][::-1]  # 反转，让最小的显示在最前面
+    # 显示前10个低差异样本
+    print("***** Top 10 Low Diff Samples *****")
+    display_results = results[-10:][::-1]  # 反转，让最小的显示在最前面
 
     for i, r in enumerate(display_results):
         print("{:2d}. {}: {:.2f}%".format(i + 1, r["img_path"], r["diff_ratio"] * 100))
