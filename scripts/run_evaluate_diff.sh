@@ -4,10 +4,8 @@
 # 用于对比两种模型生成的标签，找出差异最大的样本
 
 # 默认参数
-INPUT=${INPUT:-""}
-OUTPUT=${OUTPUT:-"exp/diff/high_diff.txt"}
-DATA_ROOT=${DATA_ROOT:-""}
-IGNORE_VALUE=${IGNORE_VALUE:-255}
+CONFIG=${CONFIG:-"configs/loveda.yaml"}
+OUTPUT_DIR=${OUTPUT_DIR:-"exp/diff/"}
 TOP_PERCENT=${TOP_PERCENT:-1.0}
 OUTPUT_ALL=${OUTPUT_ALL:-false}
 
@@ -16,30 +14,29 @@ usage() {
     echo "用法: $0 [选项]"
     echo ""
     echo "选项:"
-    echo "  --input INPUT_PATH          输入splits文件路径 (必需)"
-    echo "                              格式: image_path old_mask_path new_mask_path"
-    echo "  --output OUTPUT_PATH        输出结果文件路径 (默认: exp/diff/high_diff.txt)"
-    echo "  --data-root ROOT_DIR        数据集根目录 (默认: 当前目录)"
-    echo "  --ignore-value VALUE        忽略的标签值 (默认: 255)"
-    echo "  --top-percent PERCENT       输出差异最大的前百分之N (默认: 1.0)"
-    echo "  --output-all                输出所有样本的差异（按差异排序）"
-    echo "  -h, --help                  显示此帮助信息"
+    echo "  --config CONFIG_PATH       配置文件路径 (默认: configs/loveda.yaml)"
+    echo "                              支持的配置文件: loveda.yaml, isaid_ori.yaml, potsdam.yaml 等"
+    echo "  --output-dir DIR_PATH      输出结果保存目录 (默认: exp/diff/)"
+    echo "  --top-percent PERCENT      输出差异最大的前百分之N (默认: 1.0)"
+    echo "  --output-all               输出所有样本的差异（按差异排序）"
+    echo "  -h, --help                 显示此帮助信息"
     echo ""
     echo "示例:"
-    echo "  # 基本使用"
-    echo "  $0 --input splits/loveda/compare.txt --output exp/diff/loveda_high_diff.txt"
+    echo "  # 基本使用 (使用 LoveDA 配置)"
+    echo "  $0 --config configs/loveda.yaml"
     echo ""
-    echo "  # 指定数据根目录"
-    echo "  $0 --input splits/loveda/compare.txt --data-root /path/to/dataset"
+    echo "  # 指定输出目录"
+    echo "  $0 --config configs/isaid_ori.yaml --output-dir exp/isaid_diff/"
     echo ""
     echo "  # 输出前5%的高差异样本"
-    echo "  $0 --input splits/loveda/compare.txt --top-percent 5"
+    echo "  $0 --config configs/potsdam.yaml --top-percent 5"
     echo ""
     echo "  # 输出所有样本的差异"
-    echo "  $0 --input splits/loveda/compare.txt --output-all"
+    echo "  $0 --config configs/vaihingen.yaml --output-all"
     echo ""
     echo "输出格式:"
-    echo "  image_path old_mask_path new_mask_path diff_ratio"
+    echo "  输出文件: {output_dir}/{dataset}_high_diff.txt"
+    echo "  格式: image_id diff_ratio"
     echo ""
     echo "  其中 diff_ratio 为像素不一致率 (0.0 ~ 1.0)"
 }
@@ -47,20 +44,12 @@ usage() {
 # 解析命令行参数
 while [[ $# -gt 0 ]]; do
     case $1 in
-        --input)
-            INPUT="$2"
+        --config)
+            CONFIG="$2"
             shift 2
             ;;
-        --output)
-            OUTPUT="$2"
-            shift 2
-            ;;
-        --data-root)
-            DATA_ROOT="$2"
-            shift 2
-            ;;
-        --ignore-value)
-            IGNORE_VALUE="$2"
+        --output-dir)
+            OUTPUT_DIR="$2"
             shift 2
             ;;
         --top-percent)
@@ -84,21 +73,20 @@ while [[ $# -gt 0 ]]; do
 done
 
 # 检查必需参数
-if [ -z "$INPUT" ]; then
-    echo "错误: 必须指定输入文件 (--input)"
+if [ -z "$CONFIG" ]; then
+    echo "错误: 必须指定配置文件 (--config)"
     echo ""
     usage
     exit 1
 fi
 
-# 检查输入文件是否存在
-if [ ! -f "$INPUT" ]; then
-    echo "错误: 输入文件不存在: $INPUT"
+# 检查配置文件是否存在
+if [ ! -f "$CONFIG" ]; then
+    echo "错误: 配置文件不存在: $CONFIG"
     exit 1
 fi
 
 # 创建输出目录
-OUTPUT_DIR=$(dirname "$OUTPUT")
 if [ -n "$OUTPUT_DIR" ]; then
     mkdir -p "$OUTPUT_DIR"
 fi
@@ -107,20 +95,14 @@ fi
 echo "========================================"
 echo "开始标签差异评估"
 echo "========================================"
-echo "输入文件:     $INPUT"
-echo "输出文件:     $OUTPUT"
-echo "数据根目录:   ${DATA_ROOT:-'(当前目录)'}"
-echo "忽略值:       $IGNORE_VALUE"
+echo "配置文件:     $CONFIG"
+echo "输出目录:     $OUTPUT_DIR"
 echo "输出前:       ${TOP_PERCENT}%"
 echo "输出全部:     $OUTPUT_ALL"
 echo "========================================"
 
 # 构建命令
-CMD="python evaluate_diff.py --input \"$INPUT\" --output \"$OUTPUT\" --ignore-value $IGNORE_VALUE --top-percent $TOP_PERCENT"
-
-if [ -n "$DATA_ROOT" ]; then
-    CMD="$CMD --data-root \"$DATA_ROOT\""
-fi
+CMD="python evaluate_diff.py --config \"$CONFIG\" --output-dir \"$OUTPUT_DIR\" --top-percent $TOP_PERCENT"
 
 if [ "$OUTPUT_ALL" = true ]; then
     CMD="$CMD --output-all"
@@ -135,7 +117,7 @@ if [ $? -eq 0 ]; then
     echo "========================================"
     echo "标签差异评估完成！"
     echo "========================================"
-    echo "结果保存在: $OUTPUT"
+    echo "结果保存在: $OUTPUT_DIR"
     echo "========================================"
 else
     echo ""
