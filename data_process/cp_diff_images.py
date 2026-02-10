@@ -1,9 +1,9 @@
 """
 Copy Different Mask Images
-用于将差异评估结果中的mask文件复制到指定目录
+用于将差异评估结果中的mask文件和图像文件复制到指定目录
 
 根据 evaluate_diff.py 生成的 diff.txt 文件，将差异较大的样本的
-old_mask 和 new_mask 复制到 exp/diff/ 目录下对应文件夹中
+image、old_mask 和 new_mask 复制到 exp/diff/ 目录下对应文件夹中
 """
 
 import argparse
@@ -38,7 +38,7 @@ def parse_diff_line(line):
 
 def copy_diff_masks(diff_file, data_root, output_dir):
     """
-    复制差异mask文件到指定目录
+    复制差异mask文件和图像文件到指定目录
 
     Args:
         diff_file: diff.txt文件路径
@@ -49,9 +49,11 @@ def copy_diff_masks(diff_file, data_root, output_dir):
         dict: 包含成功和失败的统计信息
     """
     # 创建输出目录
+    images_dir = os.path.join(output_dir, "images")
     old_mask_dir = os.path.join(output_dir, "old_mask")
     new_mask_dir = os.path.join(output_dir, "new_mask")
 
+    os.makedirs(images_dir, exist_ok=True)
     os.makedirs(old_mask_dir, exist_ok=True)
     os.makedirs(new_mask_dir, exist_ok=True)
 
@@ -81,6 +83,10 @@ def copy_diff_masks(diff_file, data_root, output_dir):
         if parsed is None:
             continue
 
+        # 复制 image
+        image_src = os.path.join(data_root, parsed["image_path"])
+        image_dst = os.path.join(images_dir, os.path.basename(parsed["image_path"]))
+
         # 复制 old_mask
         old_mask_src = os.path.join(data_root, parsed["old_mask_path"])
         old_mask_dst = os.path.join(old_mask_dir, os.path.basename(parsed["old_mask_path"]))
@@ -91,13 +97,14 @@ def copy_diff_masks(diff_file, data_root, output_dir):
 
         # 执行复制
         success = True
-        for src, dst, mask_type in [
+        for src, dst, file_type in [
+            (image_src, image_dst, "image"),
             (old_mask_src, old_mask_dst, "old_mask"),
             (new_mask_src, new_mask_dst, "new_mask"),
         ]:
             if not os.path.exists(src):
                 stats["failed_files"].append(
-                    f"{mask_type}: {src} (源文件不存在)"
+                    f"{file_type}: {src} (源文件不存在)"
                 )
                 success = False
             else:
@@ -105,7 +112,7 @@ def copy_diff_masks(diff_file, data_root, output_dir):
                     shutil.copy2(src, dst)
                 except Exception as e:
                     stats["failed_files"].append(
-                        f"{mask_type}: {src} -> {dst} (错误: {str(e)})"
+                        f"{file_type}: {src} -> {dst} (错误: {str(e)})"
                     )
                     success = False
 
@@ -119,7 +126,7 @@ def copy_diff_masks(diff_file, data_root, output_dir):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="复制差异mask文件 - 将差异较大的样本的mask复制到指定目录"
+        description="复制差异mask文件和图像文件 - 将差异较大的样本的图像和mask复制到指定目录"
     )
     parser.add_argument(
         "--config",
@@ -150,7 +157,7 @@ def main():
         )
 
     print("=" * 50)
-    print("开始复制差异mask文件")
+    print("开始复制差异文件（图像和mask）")
     print("=" * 50)
 
     try:
@@ -164,6 +171,7 @@ def main():
         print(f"总样本数: {stats['total']}")
         print(f"成功复制: {stats['success']}")
         print(f"失败数量: {stats['failed']}")
+        print(f"images目录: {os.path.join(args.output_dir, 'images')}")
         print(f"old_mask目录: {os.path.join(args.output_dir, 'old_mask')}")
         print(f"new_mask目录: {os.path.join(args.output_dir, 'new_mask')}")
 
