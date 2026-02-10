@@ -57,17 +57,17 @@ def main():
         help="输出结果保存目录",
     )
     parser.add_argument(
-        "--top-percent",
+        "--threshold",
         type=float,
-        default=1.0,
-        help="输出差异最大的前百分之N的样本 (默认: 1.0)",
+        default=0.01,
+        help="差异率阈值，筛选差值小于等于此阈值的样本 (默认: 0.01)",
     )
     parser.add_argument(
         "--mode",
         type=str,
         default="low",
         choices=["high", "low"],
-        help="输出模式: 'high' 为差异最大的样本, 'low' 为差异最小的样本 (默认: high)",
+        help="输出模式: 'high' 为差异最大的样本, 'low' 为差异最小的样本 (默认: low)",
     )
     parser.add_argument(
         "--output-all",
@@ -102,23 +102,18 @@ def main():
     print("Max diff: {:.4f} ({:.2f}%)".format(max_diff, max_diff * 100))
     print("Min diff: {:.4f} ({:.2f}%)\n".format(min_diff, min_diff * 100))
 
-    # 确定输出数量和范围
-    if args.output_all:
-        output_count = len(results)
-    else:
-        output_count = max(1, int(len(results) * args.top_percent / 100))
-
-    # 根据模式选择样本范围
+    # 根据阈值筛选样本
     if args.mode == "high":
-        output_results = results[:output_count]
+        output_results = [r for r in results if r["diff_ratio"] >= args.threshold]
         mode_desc = "highest"
         suffix = "high"
     else:  # low mode
-        output_results = results[-output_count:]
+        output_results = [r for r in results if r["diff_ratio"] <= args.threshold]
         mode_desc = "lowest"
         suffix = "low"
 
-    print("Output {} samples with {} diff...\n".format(output_count, mode_desc))
+    output_count = len(output_results)
+    print("Found {} samples with {} diff (threshold: {:.4f})...\n".format(output_count, mode_desc, args.threshold))
 
     # 输出文件路径
     output_path = os.path.join(
