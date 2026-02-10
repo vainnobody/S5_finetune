@@ -6,7 +6,7 @@
 # 默认参数
 CONFIG=${CONFIG:-"configs/MOTA.yaml"}
 OUTPUT_DIR=${OUTPUT_DIR:-"exp/diff/"}
-TOP_PERCENT=${TOP_PERCENT:-1.0}
+THRESHOLD=${THRESHOLD:-0.01}
 OUTPUT_ALL=${OUTPUT_ALL:-false}
 
 # 打印使用说明
@@ -14,28 +14,29 @@ usage() {
     echo "用法: $0 [选项]"
     echo ""
     echo "选项:"
-    echo "  --config CONFIG_PATH       配置文件路径 (默认: configs/loveda.yaml)"
+    echo "  --config CONFIG_PATH       配置文件路径 (默认: configs/MOTA.yaml)"
     echo "                              支持的配置文件: loveda.yaml, isaid_ori.yaml, potsdam.yaml 等"
     echo "  --output-dir DIR_PATH      输出结果保存目录 (默认: exp/diff/)"
-    echo "  --top-percent PERCENT      输出差异最大的前百分之N (默认: 1.0)"
+    echo "  --threshold THRESHOLD      差异率阈值，筛选差值小于等于此阈值的样本 (默认: 0.01)"
+    echo "                              取值范围: 0.0 ~ 1.0"
     echo "  --output-all               输出所有样本的差异（按差异排序）"
     echo "  -h, --help                 显示此帮助信息"
     echo ""
     echo "示例:"
-    echo "  # 基本使用 (使用 LoveDA 配置)"
-    echo "  $0 --config configs/loveda.yaml"
+    echo "  # 基本使用 (使用 MOTA 配置，阈值 0.01)"
+    echo "  $0 --config configs/MOTA.yaml"
     echo ""
     echo "  # 指定输出目录"
     echo "  $0 --config configs/isaid_ori.yaml --output-dir exp/isaid_diff/"
     echo ""
-    echo "  # 输出前5%的高差异样本"
-    echo "  $0 --config configs/potsdam.yaml --top-percent 5"
+    echo "  # 使用更严格的阈值 (0.005)"
+    echo "  $0 --config configs/potsdam.yaml --threshold 0.005"
     echo ""
     echo "  # 输出所有样本的差异"
     echo "  $0 --config configs/vaihingen.yaml --output-all"
     echo ""
     echo "输出格式:"
-    echo "  输出文件: {output_dir}/{dataset}_high_diff.txt"
+    echo "  输出文件: {output_dir}/{dataset}_diff.txt"
     echo "  格式: image_id diff_ratio"
     echo ""
     echo "  其中 diff_ratio 为像素不一致率 (0.0 ~ 1.0)"
@@ -52,8 +53,8 @@ while [[ $# -gt 0 ]]; do
             OUTPUT_DIR="$2"
             shift 2
             ;;
-        --top-percent)
-            TOP_PERCENT="$2"
+        --threshold)
+            THRESHOLD="$2"
             shift 2
             ;;
         --output-all)
@@ -97,12 +98,12 @@ echo "开始标签差异评估"
 echo "========================================"
 echo "配置文件:     $CONFIG"
 echo "输出目录:     $OUTPUT_DIR"
-echo "输出前:       ${TOP_PERCENT}%"
+echo "差异阈值:     $THRESHOLD"
 echo "输出全部:     $OUTPUT_ALL"
 echo "========================================"
 
 # 构建命令
-CMD="python evaluate_diff.py --config \"$CONFIG\" --output-dir \"$OUTPUT_DIR\" --top-percent $TOP_PERCENT"
+CMD="python evaluate_diff.py --config \"$CONFIG\" --output-dir \"$OUTPUT_DIR\" --threshold $THRESHOLD"
 
 if [ "$OUTPUT_ALL" = true ]; then
     CMD="$CMD --output-all"
