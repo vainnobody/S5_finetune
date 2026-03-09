@@ -1,6 +1,6 @@
 # arguments for dataset
 dataset: MOTA
-nclass: 22  # iSAID (16类) + IRSAMap (6类)
+nclass: 7  # iSAID (16类) + IRSAMap (6类)
 crop_size: 512
 # crop_size: 518
 data_root: '/data/users/lanjie/dataset/'
