@@ -304,6 +304,7 @@ class UperNet(torch.nn.Module):
 
         self.args = args
         # self.backbone = get_backbone(args)
+        print(args.backbone)
         self.encoder = get_backbone(args)
         # Init task head
         print('################# Using UperNet for semseg! ######################')

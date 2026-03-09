@@ -100,4 +100,9 @@ CLASSES = {'pascal': ['background', 'aeroplane', 'bicycle', 'bird', 'boat', 'bot
                         "ship", "soccer_ball_field", "basketball_court", "ground_Track_Field", "small_Vehicle",
                         "baseball_diamond", "tennis_court", "roundabout", "storage_tank", "harbor", "background",
                         'Cropland', 'Tree', 'Grass', 'Water', 'Buildings', 'Road'],
+           
+           'MOTA': ["large_Vehicle", "swimming_pool", "helicopter", "bridge", "plane",
+                    "ship", "soccer_ball_field", "basketball_court", "ground_Track_Field", "small_Vehicle",
+                    "baseball_diamond", "tennis_court", "roundabout", "storage_tank", "harbor", "background",
+                    'Cropland', 'Tree', 'Grass', 'Water', 'Buildings', 'Road'],
            }

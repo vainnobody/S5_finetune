@@ -1,0 +1,289 @@
+# MOTA数据集MITL标签优化方案
+
+## 一、背景分析
+
+### 1.1 当前项目状态
+- **数据集**: MOTA，52,058个样本，22个类别（iSAID 16类 + IRSAMap 6类）
+- **现有能力**: 已有标签对比功能（evaluate_diff.py），可计算两套标签的差异率
+- **问题**: 配置文件中nclass=7与实际22类不符，需修正
+
+### 1.2 MITL核心思想
+模型内循环(Model-in-the-Loop)标签优化是一种迭代式标签清洗方法：
+```
+初始标签 → 模型训练 → 预测推理 → 置信度评估 → 标签修正 → 更新训练集 → 循环
+```
+
+---
+
+## 二、推荐方法（基于调研）
+
+### 方法1: IUR-Net流程（推荐）
+**来源**: Remote Sensing 2025 - IUR-Net: A Multi-Stage Framework for Label Refinement
+
+**三阶段流程**:
+1. **Identify（识别）**: 使用多尺度错误感知定位模块(Ms-EALM)识别标签错误区域
+2. **Update（更新）**: 将错误区域的标签替换为模型预测结果
+3. **Refine（优化）**: 通过去噪引导优化模块进一步精细化标签
+
+**优势**: 专为遥感设计，性能优越（IoU从73.27%提升至95.70%）
+
+### 方法2: 自训练伪标签修正
+**流程**:
+1. 在噪声标签上训练初始模型
+2. 使用模型预测生成伪标签
+3. 通过置信度阈值筛选高质量预测
+4. 合并原始标签与伪标签（加权融合）
+5. 迭代训练
+
+### 方法3: 合成图像辅助标签修正
+**来源**: ICIP 2025 - Noisy Label Refinement with Semantically Reliable Synthetic Images
+- 利用Stable Diffusion等生成模型创建参考图像
+- 通过语义一致性检测错误标签
+
+---
+
+## 三、实现计划
+
+### 3.1 核心模块开发
+
+**文件结构**:
+```
+model/mitl/
+├── __init__.py
+├── label_refiner.py      # 标签优化主类
+├── confidence_eval.py    # 置信度评估模块
+├── error_detector.py     # 错误区域检测（Ms-EALM）
+└── label_fusion.py       # 标签融合策略
+```
+
+### 3.2 MITL流水线脚本
+
+**新增文件**: `mitl_pipeline.py`
+
+```python
+# 伪代码流程
+class MITLPipeline:
+    def __init__(self, config, backbone):
+        self.model = build_model(backbone)
+        self.refiner = LabelRefiner()
+        
+    def run_iteration(self, data_loader, threshold=0.8):
+        # 1. 训练模型
+        self.train(data_loader)
+        
+        # 2. 预测并生成置信度图
+        predictions, confidence = self.predict_with_confidence(data_loader)
+        
+        # 3. 识别低置信度/不一致区域
+        error_mask = self.detect_errors(predictions, labels, confidence)
+        
+        # 4. 更新标签
+        new_labels = self.refiner.update_labels(labels, predictions, error_mask)
+        
+        # 5. 返回更新后的数据集
+        return new_labels
+```
+
+### 3.3 关键功能实现
+
+| 功能模块 | 实现方式 | 对应文件 |
+|---------|---------|---------|
+| 置信度评估 | MC-Dropout / Temperature Scaling | confidence_eval.py |
+| 错误检测 | 预测与标签不一致 + 低置信度区域 | error_detector.py |
+| 标签融合 | 加权平均 / 选择性替换 | label_fusion.py |
+| 迭代控制 | 性能监控 + 早停策略 | mitl_pipeline.py |
+
+---
+
+## 四、实施步骤
+
+### Step 1: 修正配置
+- 修正 configs/MOTA.yaml 中 nclass: 7 → nclass: 22
+
+### Step 2: 开发置信度评估模块
+- 实现Monte Carlo Dropout推理
+- 实现预测熵计算
+- 实现类别置信度图生成
+
+### Step 3: 开发错误检测模块
+- 基于预测-标签不一致性检测
+- 基于置信度阈值检测
+- 实现Ms-EALM多尺度错误定位
+
+### Step 4: 开发标签融合模块
+- 高置信度区域：用预测替换
+- 低置信度区域：保留原标签
+- 边界区域：平滑融合
+
+### Step 5: 整合MITL流水线
+- 实现迭代训练循环
+- 添加验证监控
+- 实现早停机制
+
+### Step 6: 评估与可视化
+- 对比优化前后的mIoU
+- 可视化标签变化
+- 生成优化报告
+
+---
+
+## 五、预期成果
+
+### 5.1 输出文件
+```
+exp/mitl/
+├── iteration_1/
+│   ├── refined_labels/      # 优化后的标签
+│   ├── confidence_maps/     # 置信度图
+│   └── metrics.json         # 性能指标
+├── iteration_2/
+│   └── ...
+├── final_labels/            # 最终优化标签
+└── mitl_report.txt          # 优化报告
+```
+
+### 5.2 参考资源
+- IUR-Net论文: https://www.mdpi.com/2072-4292/17/13/2125
+- Label Noise Learning汇总: https://github.com/weijiaheng/Advances-in-Label-Noise-Learning
+- 合成图像标签修正: https://github.com/liyingxuan1012/NoisyLabelRefinement-Syn
+
+---
+
+## 六、技术细节
+
+### 6.1 置信度评估方法
+
+#### Monte Carlo Dropout
+```python
+def mc_dropout_inference(model, image, n_samples=10):
+    """使用MC-Dropout进行多次推理，计算预测不确定性"""
+    model.train()  # 启用dropout
+    predictions = []
+    for _ in range(n_samples):
+        pred = model(image)
+        predictions.append(pred.softmax(dim=1))
+    
+    # 计算均值和方差
+    mean_pred = torch.stack(predictions).mean(dim=0)
+    variance = torch.stack(predictions).var(dim=0)
+    
+    return mean_pred, variance
+```
+
+#### 预测熵
+```python
+def compute_entropy(prob_map):
+    """计算预测熵，用于评估不确定性"""
+    entropy = -torch.sum(prob_map * torch.log(prob_map + 1e-8), dim=1)
+    return entropy
+```
+
+### 6.2 错误检测策略
+
+#### 基于不一致性
+```python
+def detect_inconsistency(prediction, label, ignore_index=255):
+    """检测预测与标签不一致的区域"""
+    valid_mask = (label != ignore_index)
+    pred_class = prediction.argmax(dim=1)
+    inconsistency = (pred_class != label) & valid_mask
+    return inconsistency
+```
+
+#### 基于置信度阈值
+```python
+def detect_low_confidence(prob_map, threshold=0.8):
+    """检测低置信度区域"""
+    max_prob = prob_map.max(dim=1)[0]
+    low_conf = max_prob < threshold
+    return low_conf
+```
+
+### 6.3 标签融合策略
+
+#### 选择性替换
+```python
+def selective_replacement(original_label, prediction, confidence, threshold=0.9):
+    """选择性替换：高置信度区域用预测替换原标签"""
+    pred_class = prediction.argmax(dim=1)
+    high_conf_mask = confidence > threshold
+    
+    new_label = original_label.clone()
+    new_label[high_conf_mask] = pred_class[high_conf_mask]
+    
+    return new_label
+```
+
+#### 加权融合
+```python
+def weighted_fusion(original_label, prediction, confidence, alpha=0.5):
+    """加权融合原标签与预测"""
+    # 原标签one-hot编码
+    original_onehot = F.one_hot(original_label, num_classes=prediction.shape[1])
+    
+    # 加权融合
+    fused = alpha * original_onehot + (1 - alpha) * prediction
+    
+    # 取最大值作为最终标签
+    new_label = fused.argmax(dim=-1)
+    
+    return new_label
+```
+
+---
+
+## 七、配置参数
+
+### 7.1 MITL配置示例
+```yaml
+# configs/mitl.yaml
+mitl:
+  # 迭代设置
+  max_iterations: 5
+  early_stop_patience: 2
+  
+  # 置信度设置
+  confidence_threshold: 0.8
+  mc_dropout_samples: 10
+  
+  # 错误检测
+  inconsistency_weight: 0.5
+  entropy_threshold: 2.0
+  
+  # 标签融合
+  fusion_method: "selective"  # selective / weighted
+  fusion_alpha: 0.5
+  
+  # 输出设置
+  save_confidence_maps: true
+  save_intermediate_labels: true
+```
+
+---
+
+## 八、评估指标
+
+### 8.1 标签质量评估
+- **标签变化率**: (优化前差异像素数 - 优化后差异像素数) / 总像素数
+- **置信度提升**: 平均置信度的变化
+- **一致性提升**: 预测与标签一致性的变化
+
+### 8.2 模型性能评估
+- **mIoU**: 平均交并比
+- **mAcc**: 平均准确率
+- **mF1**: 平均F1分数
+
+---
+
+## 九、注意事项
+
+1. **备份原始标签**: 优化前务必备份原始标签文件
+2. **验证集保持不变**: 不要修改验证集标签，仅优化训练集
+3. **人工审核**: 对于关键应用，建议加入人工审核环节
+4. **迭代控制**: 设置合理的迭代次数上限，避免过度优化
+
+---
+
+## 十、更新日志
+
+- 2026-03-04: 初始规划文档创建

@@ -67,6 +67,11 @@ def main():
         action="store_true",
         help="输出所有样本的差异（按差异排序）",
     )
+    parser.add_argument(
+        "--high-diff",
+        action="store_true",
+        help="输出高差异样本（差异率大于阈值）",
+    )
 
     args = parser.parse_args()
 
@@ -100,6 +105,11 @@ def main():
         output_results = results
         output_count = len(results)
         print("Output all {} samples...\n".format(output_count))
+    elif args.high_diff:
+        # 根据阈值筛选高差异样本
+        output_results = [r for r in results if r["diff_ratio"] > args.threshold]
+        output_count = len(output_results)
+        print("Found {} samples with HIGH diff (threshold: {:.4f})...\n".format(output_count, args.threshold))
     else:
         # 根据阈值筛选低差异样本
         output_results = [r for r in results if r["diff_ratio"] <= args.threshold]
@@ -119,9 +129,16 @@ def main():
 
     print("Results saved to: {}\n".format(output_path))
 
-    # 显示前10个低差异样本
-    print("***** Top 10 Low Diff Samples *****")
-    display_results = results[-10:][::-1]  # 反转，让最小的显示在最前面
+    # 根据模式显示不同的样本
+    if args.high_diff:
+        print("***** Top 10 High Diff Samples *****")
+        display_results = results[:10]  # 差异最大的前10个
+    elif args.output_all:
+        print("***** Top 10 High Diff Samples *****")
+        display_results = results[:10]  # 差异最大的前10个
+    else:
+        print("***** Top 10 Low Diff Samples *****")
+        display_results = results[-10:][::-1]  # 差异最小的前10个
 
     for i, r in enumerate(display_results):
         print("{:2d}. {}: {:.2f}%".format(i + 1, r["img_path"], r["diff_ratio"] * 100))

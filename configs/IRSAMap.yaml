@@ -1,13 +1,13 @@
 # arguments for dataset
 dataset: IRSAMap
 nclass: 7
-crop_size: 512
-# crop_size: 518
+# crop_size: 512
+crop_size: 518
 data_root: '/data/users/lanjie/dataset/'
 epochs: 200
 batch_size: 12 # per GPU x 4 GPUs
 lr: 0.00005
-lr_multi: 1.0
+lr_multi: 40.0
 
 criterion:
   name: CELoss
@@ -18,3 +18,8 @@ amp: True
 workers: 1
 ignore_index: 255
 eval_mode: resize
+
+model: dpt
+# backbone: dinov2_small
+backbone: dinov2_base
+lock_backbone: False

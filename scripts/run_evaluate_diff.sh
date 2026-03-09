@@ -6,7 +6,7 @@
 # 默认参数
 CONFIG=${CONFIG:-"configs/MOTA.yaml"}
 OUTPUT_DIR=${OUTPUT_DIR:-"exp/diff/"}
-THRESHOLD=${THRESHOLD:-0.01}
+THRESHOLD=${THRESHOLD:-0.03}
 OUTPUT_ALL=${OUTPUT_ALL:-false}
 
 # 打印使用说明
