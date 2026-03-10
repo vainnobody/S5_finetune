@@ -79,8 +79,26 @@ class SemiDataset(Dataset):
         # img, mask = Rotate_180(img, mask, p=0.5)
         # img, mask = Rotate_270(img, mask, p=0.5)
         if random.random() < 0.8:
-            img = transforms.ColorJitter(0.5, 0.5, 0.5, 0.25)(img)
-        img = transforms.RandomGrayscale(p=0.2)(img)
+            try:
+                # 检查图像数据是否正常
+                img_array = np.array(img)
+                if img_array.min() < 0 or img_array.max() > 255:
+                    print(f"[WARNING] Image pixel values out of range: min={img_array.min()}, max={img_array.max()}")
+                    print(f"  Image ID: {id}")
+                img = transforms.ColorJitter(0.5, 0.5, 0.5, 0.25)(img)
+            except OverflowError as e:
+                print(f"[WARNING] ColorJitter OverflowError on image: {id}")
+                print(f"  Image mode: {img.mode}, size: {img.size}")
+                img_array = np.array(img)
+                print(f"  Pixel range: min={img_array.min()}, max={img_array.max()}")
+                print(f"  Error: {e}")
+                # 跳过 ColorJitter，保留原图
+                pass
+        try:
+            img = transforms.RandomGrayscale(p=0.2)(img)
+        except OverflowError as e:
+            print(f"[WARNING] RandomGrayscale OverflowError on image: {id}")
+            print(f"  Error: {e}")
         img = blur(img, p=0.5)
 
         return normalize(img, mask)
