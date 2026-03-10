@@ -8,7 +8,7 @@ pretrained/
 scripts/*
 !scripts/run_evaluate_visual.sh
 !scripts/run_evaluate_diff.sh
-
+!scripts/run_*
 
 # 日志
 exp/
