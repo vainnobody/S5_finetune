@@ -4,13 +4,13 @@
 # 用于分布式训练语义分割模型
 
 # 默认参数
-CONFIG=${CONFIG:-"configs/isaid_ori.yaml"}
-LABELED_ID_PATH=${LABELED_ID_PATH:-"splits/isaid_ori/all/labeled.txt"}
+CONFIG=${CONFIG:-"configs/IRSAMap.yaml"}
+LABELED_ID_PATH=${LABELED_ID_PATH:-"splits/IRSAMap/all/labeled.txt"}
 UNLABELED_ID_PATH=${UNLABELED_ID_PATH:-""}
-SAVE_PATH=${SAVE_PATH:-"exp/isaid_ori/train"}
+SAVE_PATH=${SAVE_PATH:-"exp/IRSAMap/train"}
 GPUS=${GPUS:-1}
 PORT=${PORT:-29500}
-IMAGE_SIZE=${IMAGE_SIZE:-512}
+IMAGE_SIZE=${IMAGE_SIZE:-518}
 INTERVAL=${INTERVAL:-1}
 RESUME=${RESUME:-""}
 
