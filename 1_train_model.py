@@ -226,7 +226,8 @@ def main():
         **{**model_configs[backbone_size], "nclass": cfg["nclass"]},
         backbone_version=backbone_version,
     )
-
+    state_dict = torch.load(f'./pretrained/{cfg["backbone"]}.pth')
+    model.backbone.load_state_dict(state_dict)
     if rank == 0:
         logger.info("Total params: {:.1f}M\n".format(count_params(model)))
 
@@ -248,6 +249,10 @@ def main():
         lr=cfg["lr"],
         betas=(0.9, 0.999),
         weight_decay=0.01,
+    )
+
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer, cfg["epochs"], eta_min=cfg["lr"] * 0.01, last_epoch=-1
     )
 
     local_rank = int(os.environ["LOCAL_RANK"])
@@ -343,16 +348,16 @@ def main():
 
             img, mask = img.cuda(), mask.cuda()
 
+            optimizer.zero_grad()
+
             with torch.cuda.amp.autocast(enabled=amp):
                 model.train()
                 pred = model(img)
                 sup_loss = criterion(pred, mask)
-                torch.distributed.barrier()
-                optimizer.zero_grad()
-                loss = scaler.scale(sup_loss)
-                loss.backward()
-                scaler.step(optimizer)
-                scaler.update()
+
+            scaler.scale(sup_loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
 
             total_loss.update(sup_loss)
             iters = epoch * len(trainloader) + i
